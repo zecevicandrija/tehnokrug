@@ -1,0 +1,139 @@
+/* ===== Why Buy/Sell Sections ===== */
+.whyBuy, .whySell {
+  padding: 8rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.whySell {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-radius: 60px;
+  margin: 4rem auto;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.sectionTitle {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  font-family: var(--font-poppins), sans-serif;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sectionSubtitle {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  color: #b8c1ec;
+  font-weight: 400;
+}
+
+.reasonsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+}
+
+.reasonCard {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  perspective: 1000px;
+}
+
+.reasonCard:hover {
+  border-color: rgba(102, 126, 234, 0.4);
+  box-shadow: 0 30px 80px rgba(102, 126, 234, 0.3);
+}
+
+.reasonIcon {
+  font-size: 4.5rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+}
+
+.reasonTitle {
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-family: var(--font-poppins), sans-serif;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.reasonDescription {
+  color: #b8c1ec;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  position: relative;
+  z-index: 2;
+}
+
+.reasonGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.1;
+  filter: blur(60px);
+  transition: all 0.4s ease;
+  z-index: 1;
+}
+
+.reasonCard:hover .reasonGlow {
+  width: 300px;
+  height: 300px;
+  opacity: 0.15;
+}
+
+.disclaimer {
+  text-align: center;
+  margin-top: 3rem;
+  color: #b8c1ec;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .whyBuy,
+  .whySell {
+    padding: 5rem 1.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 2.5rem;
+  }
+
+  .sectionSubtitle {
+    font-size: 1.1rem;
+  }
+
+  .reasonsGrid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .reasonCard {
+    padding: 2rem 1.5rem;
+  }
+}
