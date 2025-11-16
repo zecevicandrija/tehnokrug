@@ -7,8 +7,9 @@ import { HiDevicePhoneMobile } from 'react-icons/hi2';
 import styles from './KakoRadi.module.css';
 
 export default function KakoRadi() {
-  const howItWorksRef = useRef(null);
-  const [howItWorksInView, setHowItWorksInView] = useState(0);
+  const containerRef = useRef(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const howItWorks = [
     {
@@ -41,42 +42,43 @@ export default function KakoRadi() {
     }
   ];
 
-  // Track scroll progress through How It Works section
   useEffect(() => {
     const handleScroll = () => {
-      if (!howItWorksRef.current) return;
+      if (!containerRef.current) return;
 
-      const element = howItWorksRef.current;
-      const rect = element.getBoundingClientRect();
+      const container = containerRef.current;
+      const { top, height } = container.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      const elementHeight = element.offsetHeight;
 
-      // Calculate progress (0 to 1) as user scrolls through the section
-      const start = rect.top;
-      const end = rect.bottom - windowHeight;
+      // Kada element uđe u viewport
+      if (top <= 0 && top + height >= windowHeight) {
+        // Izračunaj progress od 0 do 1
+        const scrolled = Math.abs(top);
+        const totalScroll = height - windowHeight;
+        const progress = Math.min(Math.max(scrolled / totalScroll, 0), 1);
 
-      let progress = 0;
-      if (start <= 0 && end >= 0) {
-        // Element is in view
-        progress = Math.abs(start) / (elementHeight - windowHeight);
-        progress = Math.max(0, Math.min(1, progress));
-      } else if (start > 0) {
-        progress = 0;
+        setScrollProgress(progress);
+
+        // Odredi koji step je trenutno aktivan
+        const stepIndex = Math.floor(progress * howItWorks.length);
+        setCurrentStep(Math.min(stepIndex, howItWorks.length - 1));
+      } else if (top > 0) {
+        setScrollProgress(0);
+        setCurrentStep(0);
       } else {
-        progress = 1;
+        setScrollProgress(1);
+        setCurrentStep(howItWorks.length - 1);
       }
-
-      setHowItWorksInView(progress);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Initial check
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [howItWorks.length]);
 
   return (
-    <section ref={howItWorksRef} className={styles.howItWorksWrapper} id="kako-radi">
+    <section ref={containerRef} className={styles.howItWorksWrapper} id="kako-radi">
       <div className={styles.howItWorksStickyContainer}>
         {/* Header */}
         <motion.div
@@ -97,8 +99,7 @@ export default function KakoRadi() {
             <div
               className={styles.progressLine}
               style={{
-                transform: `scaleY(${howItWorksInView})`,
-                transformOrigin: 'top'
+                height: `${scrollProgress * 100}%`,
               }}
             />
           </div>
@@ -106,50 +107,36 @@ export default function KakoRadi() {
           {/* Steps Cards */}
           <div className={styles.stepsCardsContainer}>
             {howItWorks.map((step, index) => {
-              // Jednostavnija logika za animaciju
-              // Svaki step dobija 1/4 scroll prostora (0.25)
-              const totalSteps = howItWorks.length;
-              const stepDuration = 1 / totalSteps; // 0.25 za 4 koraka
-              const stepStart = index * stepDuration; // 0, 0.25, 0.5, 0.75
-              const stepEnd = (index + 1) * stepDuration; // 0.25, 0.5, 0.75, 1.0
-              const fadeMargin = 0.1; // 10% za fade in/out
+              // Kalkulacija za svaki step
+              const stepRange = 1 / howItWorks.length; // 0.25 za 4 step-a
+              const stepStart = index * stepRange;
+              const stepEnd = (index + 1) * stepRange;
+              const stepMiddle = (stepStart + stepEnd) / 2;
 
-              let opacity = 0;
-              let y = 50;
-              let scale = 0.9;
+              // Izračunaj koliko je step aktivan (0 do 1)
+              let stepProgress = 0;
 
-              // Fade in
-              if (howItWorksInView >= stepStart && howItWorksInView < stepStart + fadeMargin) {
-                const fadeProgress = (howItWorksInView - stepStart) / fadeMargin;
-                opacity = fadeProgress;
-                y = 50 - (50 * fadeProgress);
-                scale = 0.9 + (0.1 * fadeProgress);
+              if (scrollProgress >= stepStart && scrollProgress <= stepEnd) {
+                // Step je u svom rangu
+                const localProgress = (scrollProgress - stepStart) / stepRange;
+
+                // Fade in u prvoj polovini, fade out u drugoj
+                if (localProgress <= 0.5) {
+                  stepProgress = localProgress * 2; // 0 -> 1
+                } else {
+                  stepProgress = (1 - localProgress) * 2; // 1 -> 0
+                }
+              } else if (scrollProgress < stepStart) {
+                // Pre nego što step počne
+                stepProgress = 0;
+              } else {
+                // Posle što step završi
+                stepProgress = 0;
               }
-              // Fully visible
-              else if (howItWorksInView >= stepStart + fadeMargin && howItWorksInView <= stepEnd - fadeMargin) {
-                opacity = 1;
-                y = 0;
-                scale = 1;
-              }
-              // Fade out
-              else if (howItWorksInView > stepEnd - fadeMargin && howItWorksInView <= stepEnd) {
-                const fadeProgress = (howItWorksInView - (stepEnd - fadeMargin)) / fadeMargin;
-                opacity = 1 - fadeProgress;
-                y = -50 * fadeProgress;
-                scale = 1 - (0.1 * fadeProgress);
-              }
-              // Before step starts
-              else if (howItWorksInView < stepStart) {
-                opacity = 0;
-                y = 50;
-                scale = 0.9;
-              }
-              // After step ends
-              else if (howItWorksInView > stepEnd) {
-                opacity = 0;
-                y = -50;
-                scale = 0.9;
-              }
+
+              const opacity = stepProgress;
+              const y = (1 - stepProgress) * 30; // Pomera se od 30px do 0
+              const scale = 0.95 + (stepProgress * 0.05); // Od 0.95 do 1
 
               return (
                 <div
@@ -158,13 +145,7 @@ export default function KakoRadi() {
                   style={{
                     opacity,
                     transform: `translate(-50%, calc(-50% + ${y}px)) scale(${scale})`,
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    width: '100%',
-                    maxWidth: '600px',
-                    willChange: 'transform, opacity',
-                    transition: 'opacity 0.1s ease-out, transform 0.1s ease-out'
+                    pointerEvents: stepProgress > 0.3 ? 'auto' : 'none',
                   }}
                 >
                   <div className={styles.stepCardInner}>
@@ -191,12 +172,29 @@ export default function KakoRadi() {
                     {/* Decorative Glow */}
                     <div
                       className={styles.stepGlow}
-                      style={{ background: step.color }}
+                      style={{
+                        background: step.color,
+                        opacity: stepProgress * 0.3
+                      }}
                     />
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          {/* Step indicators */}
+          <div className={styles.stepIndicators}>
+            {howItWorks.map((_, index) => (
+              <div
+                key={index}
+                className={styles.stepIndicator}
+                style={{
+                  opacity: currentStep === index ? 1 : 0.3,
+                  transform: currentStep === index ? 'scale(1.2)' : 'scale(1)',
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
